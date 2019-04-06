@@ -6,7 +6,6 @@ import tempfile
 import datetime
 import pytz
 from pytz import timezone
-import tempfile
 
 
 class DataExtractor():
@@ -34,14 +33,17 @@ class DataExtractor():
 
         header_labels = [item.get('label') for item in header]
         header_properties = [item.get('property') for item in header]
-        with open(f'{filename}.csv', 'w') as outfile:
-            outcsv = csv.writer(outfile, dialect="excel", delimiter=";")
-            outcsv.writerow(header_labels)
 
-            def format_values(row):
-                return [self.format_value_by_type(row.get(prop), configs) for prop in header_properties]
+        temporary_file = tempfile.TemporaryFile()
+        temp_csv = csv.writer(temporary_file, dialect="excel", delimiter=";")
+        temp_csv.writerow(header_labels)
 
-            outcsv.writerows(format_values(row) for row in results)
+        def format_values(row):
+            return [self.format_value_by_type(row.get(prop), configs) for prop in header_properties]
+
+        temp_csv.writerows(format_values(row) for row in results)
+
+        return temporary_file
 
     def format_value_by_type(self, value, configs):
         value_type = type(value)

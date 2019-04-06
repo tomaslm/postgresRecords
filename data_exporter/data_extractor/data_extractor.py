@@ -12,26 +12,29 @@ import tempfile
 class DataExtractor():
     def __init__(self, url):
         self.db = records.Database(url)
+        self.sql_folder = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'sql')
 
-    def select_data(self, sql_file_data_path, filters):
-        results = self.db.query_file(sql_file_data_path, **filters)
+    def select_data(self, export_type, filters):
+        file_path = os.path.join(
+            self.sql_folder, export_type, f'{export_type}_data.sql')
+        results = self.db.query_file(file_path, **filters)
         return (result for result in results)
 
-    def get_header_with_labels(self, sql_file_header_path):
-        return self.db.query_file(sql_file_header_path,
+    def get_header_with_labels(self, export_type):
+        file_path = os.path.join(
+            self.sql_folder, export_type, f'{export_type}_header.sql')
+        return self.db.query_file(file_path,
                                   fetchall=True).as_dict(ordered=True)
 
-    def export_upload_and_send_email(self, sql_file_pahts, configs, filters):
-        tempfile = export_to_tempfile(sql_file_pahts, configs, filters)
+    def export_to_tempfile(self, export_type, configs, filters, filename):
+        results = self.select_data(export_type, filters)
 
-    def export_to_tempfile(self, sql_file_pahts, configs, filters):
-        results = self.select_data(sql_file_pahts.get('data'), filters)
-
-        header = self.get_header_with_labels(sql_file_pahts.get('header'))
+        header = self.get_header_with_labels(export_type)
 
         header_labels = [item.get('label') for item in header]
         header_properties = [item.get('property') for item in header]
-        with open('mydump.csv', 'w') as outfile:
+        with open(f'{filename}.csv', 'w') as outfile:
             outcsv = csv.writer(outfile, dialect="excel", delimiter=";")
             outcsv.writerow(header_labels)
 
@@ -65,11 +68,9 @@ if __name__ == '__main__':
         'date_max': datetime.datetime(2019, 1, 1, 00, 00).astimezone(timezone_sao_paulo),
     }
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
     data_exporter.export_to_tempfile(
-        sql_file_pahts={
-            'data': os.path.join(current_dir, 'sql', 'order', 'order_data.sql'),
-            'header': os.path.join(current_dir, 'sql', 'order', 'order_header.sql'),
-        },
+        export_type='order',
         configs=configs,
-        filters=filters)
+        filters=filters,
+        filename='temp',
+    )

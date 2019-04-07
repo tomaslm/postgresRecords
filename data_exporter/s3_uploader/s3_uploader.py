@@ -14,6 +14,6 @@ class S3Uploader():
 
 if __name__ == '__main__':
     s3_uploader = S3Uploader('bucketname')
-    with tempfile.TemporaryFile() as temporary_file:
-        temporary_file.write(b'hello world!')
+    with tempfile.TemporaryFile(mode='w+') as temporary_file:
+        temporary_file.write('hello world!')
         s3_uploader.upload_file(temporary_file, '123.txt')

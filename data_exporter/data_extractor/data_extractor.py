@@ -26,7 +26,12 @@ class DataExtractor():
         return self.db.query_file(file_path,
                                   fetchall=True).as_dict(ordered=True)
 
-    def export_to_tempfile(self, export_type, configs, filters, filename):
+    def export_to_tempfile(self, export_type, configs, filters):
+        temporary_file = tempfile.TemporaryFile(mode='w')
+        self._export_to_file(temporary_file, export_type, configs, filters)
+        return temporary_file
+
+    def _export_to_file(self, file, export_type, configs, filters):
         results = self.select_data(export_type, filters)
 
         header = self.get_header_with_labels(export_type)
@@ -34,8 +39,7 @@ class DataExtractor():
         header_labels = [item.get('label') for item in header]
         header_properties = [item.get('property') for item in header]
 
-        temporary_file = tempfile.TemporaryFile()
-        temp_csv = csv.writer(temporary_file, dialect="excel", delimiter=";")
+        temp_csv = csv.writer(file, dialect="excel", delimiter=";")
         temp_csv.writerow(header_labels)
 
         def format_values(row):
@@ -43,7 +47,7 @@ class DataExtractor():
 
         temp_csv.writerows(format_values(row) for row in results)
 
-        return temporary_file
+        return file
 
     def format_value_by_type(self, value, configs):
         value_type = type(value)
@@ -54,7 +58,7 @@ class DataExtractor():
 
 
 if __name__ == '__main__':
-    data_exporter = DataExtractor(
+    data_extractor = DataExtractor(
         url='postgresql://postgres:pass@localhost:5432/extract_data',
     )
 
@@ -70,9 +74,10 @@ if __name__ == '__main__':
         'date_max': datetime.datetime(2019, 1, 1, 00, 00).astimezone(timezone_sao_paulo),
     }
 
-    data_exporter.export_to_tempfile(
-        export_type='order',
-        configs=configs,
-        filters=filters,
-        filename='temp',
-    )
+    with open('data_extractor_test.csv', 'w+') as test_file:
+        data_extractor._export_to_file(
+            file=test_file,
+            export_type='order',
+            configs=configs,
+            filters=filters,
+        )

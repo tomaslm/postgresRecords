@@ -12,8 +12,7 @@ class EmailSender:
             f'Link to download export file of type "{export_type}": {url_exported_file}'
         )
 
-        payload = {"sender": self.email_sender,
-                   "recipients": recipients, "body": body}
+        payload = {"sender": self.email_sender, "recipients": recipients, "body": body}
 
         requests.post(self.url_email_service, data=payload)
 
@@ -25,6 +24,6 @@ if __name__ == "__main__":
     )
     email_sender.send_email(
         recipients=("recipient@example.com"),
-        export_type='order',
-        url_exported_file='http://s3-external-1.amazonaws.com/bucket/123',
+        export_type="order",
+        url_exported_file="http://s3-external-1.amazonaws.com/bucket/123",
     )

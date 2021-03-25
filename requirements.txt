@@ -14,7 +14,7 @@ psycopg2-binary==2.8
 pycodestyle==2.5.0
 python-dateutil==2.8.0
 pytz==2018.9
-PyYAML==5.1
+PyYAML==5.4
 records==0.5.3
 s3transfer==0.2.0
 six==1.12.0
